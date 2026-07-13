@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Sign in — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .auth-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem 1rem; position: relative; z-index: 1; }
+    .auth-card { width: 400px; background: var(--panel); border: 1px solid var(--border); clip-path: polygon(0 20px, 20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); overflow: hidden; backdrop-filter: blur(20px) saturate(160%); box-shadow: 0 24px 70px rgba(0,0,0,0.4); }
+    .auth-head { padding: 2rem 2rem 1.5rem; text-align: center; border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+    .auth-head svg { position: absolute; left: 0; bottom: 0; width: 100%; height: 30px; opacity: 0.4; }
+    .auth-body { padding: 1.75rem 2rem 2rem; }
+    .brand-mark { font-family: var(--display); font-weight: 800; font-size: 1.2rem; letter-spacing: -0.01em; }
+    .brand-mark .dot { display:inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 8px var(--signal); margin-right: 6px; }
+  </style>
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-head">
+      <div class="brand-mark"><span class="dot"></span>MEDISENSE // AI</div>
+      <p class="text-muted small mt-1" style="margin:0.4rem 0 0;">Multi-Modal Diagnostic Console</p>
+      <svg viewBox="0 0 600 60" preserveAspectRatio="none"><path d="M0,30 L25,30 L32,8 L38,52 L44,22 L50,30 L125,30 L132,8 L138,52 L144,22 L150,30 L225,30 L232,8 L238,52 L244,22 L250,30 L325,30 L332,8 L338,52 L344,22 L350,30 L425,30 L432,8 L438,52 L444,22 L450,30 L525,30 L532,8 L538,52 L544,22 L550,30 L600,30" fill="none" stroke="var(--signal)" stroke-width="2"/></svg>
+    </div>
+    <div class="auth-body">
+      {% if request.args.get('registered') %}
+      <div class="note note-info mb-2 small">Account created. Sign in with your new credentials below.</div>
+      {% endif %}
+      {% if error %}
+      <div class="note note-danger mb-2 small">{{ error }}</div>
+      {% endif %}
+      <form action="/login" method="POST">
+        <div class="field-box mb-2">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="dr.username" required/>
+        </div>
+        <div class="field-box mb-2" style="position:relative;">
+          <label>Password</label>
+          <input type="password" name="password" id="pwd" placeholder="••••••••" required/>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Sign in →</button>
+      </form>
+      <p class="text-center small text-muted mt-2" style="margin-bottom:0;">
+        No account? <a href="/signup" style="color:var(--signal); text-decoration:none;">Register as a doctor</a>
+      </p>
+      <p class="text-center mono mt-1" style="font-size:0.68rem; color:var(--muted); margin-bottom:0;">
+        demo — admin / admin123
+      </p>
+    </div>
+  </div>
+</div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{% block title %}MediSense AI{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    {% if session.get('logged_in') %}
+    <a href="/patients" class="nav-link">Patients</a>
+    <a href="/" class="nav-link">Console</a>
+    <a href="{{ url_for('logout') }}" class="nav-link">Log out</a>
+    {% endif %}
+  </nav>
+  {% block content %}{% endblock %}
+  {% block extra_scripts %}{% endblock %}
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

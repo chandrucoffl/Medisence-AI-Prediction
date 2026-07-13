@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Result — {{ disease_name }}</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap narrow">
+    <div class="verdict-panel {{ 'high' if badge == 'danger' else 'low' }}">
+      <div class="verdict-icon">{% if result == "Low Risk" %}✓{% elif result == "High Risk" %}⚠{% else %}✕{% endif %}</div>
+      <div class="verdict-title">{{ result }} — {{ disease_name }}</div>
+      <div class="verdict-sub">{{ disease_icon }} {{ disease_name }} · ML risk model</div>
+      <div class="confidence-readout">CONFIDENCE {{ confidence }}</div>
+
+      {% if saved_note %}
+      <div class="note note-info mt-2 small">Saved to <strong>{{ saved_note }}</strong>'s health report</div>
+      {% endif %}
+
+      <div class="flex gap-sm mt-3" style="justify-content:center;">
+        <a href="/predict/{{ disease_key }}" class="btn btn-primary btn-sm">← Predict again</a>
+        <a href="/" class="btn btn-ghost btn-sm">Change module</a>
+      </div>
+      {% if result != "Error" %}
+      <p class="text-muted small mt-2" style="margin-bottom:0;">
+        AI-assisted screening only — not a clinical diagnosis. Confirm with lab tests and specialist review.
+      </p>
+      {% endif %}
+    </div>
+
+    {% if all_diseases %}
+    <p class="eyebrow mt-3 mb-1">Try another module</p>
+    <div class="module-grid" style="grid-template-columns:repeat(auto-fill, minmax(220px,1fr));">
+      {% for key, m in all_diseases.items() %}
+      {% if key != disease_key %}
+      <a href="/predict/{{ key }}" class="module-card" style="--accent:var(--signal); --accent-dim:var(--signal-dim); padding:0.9rem 1.1rem;">
+        <span style="font-size:1.2rem;">{{ m.icon }}</span>
+        <strong class="small" style="margin-left:0.5rem;">{{ m.name }}</strong>
+      </a>
+      {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

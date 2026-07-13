@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Batch X-ray Prediction — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .stat-box { background: var(--ink); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+    .stat-box .num { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap">
+    <div class="console-header anim-in" style="padding:1.4rem 1.6rem; --accent:var(--amber);">
+      <span class="eyebrow" style="color:var(--amber);">Batch X-ray Prediction</span>
+      <h1 class="mt-1 grad-text" style="font-size:1.2rem;" data-text="🫁 Chest X-ray Pneumonia Detector">🫁 Chest X-ray Pneumonia Detector</h1>
+      <p class="small">{{ results|length }} image(s) processed</p>
+    </div>
+
+    <div class="module-grid mb-2" style="grid-template-columns:repeat(2,1fr);">
+      <div class="stat-box"><div class="num">{{ results|length }}</div><div class="text-muted small">Total images</div></div>
+      <div class="stat-box"><div class="num text-alert">{{ high_count }}</div><div class="text-muted small">High risk</div></div>
+    </div>
+
+    <table class="console-table">
+      <thead><tr><th>#</th><th>File</th><th>Result</th><th>Confidence</th></tr></thead>
+      <tbody>
+      {% for r in results %}
+        <tr>
+          <td class="mono">{{ r.row }}</td>
+          <td style="font-weight:600;">{{ r.patient }}
+            {% if r.flag %}<span class="badge badge-warn" style="margin-left:0.4rem;">Low-confidence</span>{% endif %}
+          </td>
+          <td><span class="badge {{ 'badge-high' if r.result == 'High Risk' else ('badge-low' if r.result == 'Low Risk' else 'badge-warn') }}">{{ r.result }}</span></td>
+          <td class="mono">{{ r.confidence }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="text-center mt-3">
+      <a href="/predict/xray" class="btn btn-primary btn-sm">← Try more images</a>
+      <a href="/" class="btn btn-ghost btn-sm">Console</a>
+    </div>
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

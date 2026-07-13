@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>CSV Batch Prediction — {{ disease_name }}</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .stat-box { background: var(--ink); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; text-align: center; }
+    .stat-box .num { font-family: var(--mono); font-size: 1.5rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap">
+    <div class="console-header anim-in" style="padding:1.4rem 1.6rem;">
+      <span class="eyebrow">CSV Batch Prediction</span>
+      <h1 class="mt-1 grad-text" style="font-size:1.2rem;" data-text="{{ disease_icon }} {{ disease_name }}">{{ disease_icon }} {{ disease_name }}</h1>
+      <p class="small">{{ results|length }} patient row(s) processed</p>
+    </div>
+
+    {% if error %}
+    <div class="note note-danger">{{ error }}</div>
+    {% else %}
+
+    <div class="module-grid mb-2" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat-box"><div class="num">{{ results|length }}</div><div class="text-muted small">Total patients</div></div>
+      <div class="stat-box"><div class="num text-alert">{{ high_count }}</div><div class="text-muted small">High risk</div></div>
+      <div class="stat-box"><div class="num text-signal">{{ matched_count }}/{{ total_features }}</div><div class="text-muted small">Columns matched</div></div>
+    </div>
+
+    {% if unmatched %}
+    <div class="note note-warn small mb-2">
+      Couldn't find columns for: <strong>{{ unmatched|join(', ') }}</strong> — defaulted to 0 for all rows, so results may be less accurate.
+    </div>
+    {% endif %}
+
+    <table class="console-table">
+      <thead><tr><th>#</th><th>Patient</th><th>Result</th><th>Confidence</th></tr></thead>
+      <tbody>
+      {% for r in results %}
+        <tr>
+          <td class="mono">{{ r.row }}</td>
+          <td style="font-weight:600;">{{ r.patient }}</td>
+          <td><span class="badge {{ 'badge-high' if r.result == 'High Risk' else 'badge-low' }}">{{ r.result }}</span></td>
+          <td class="mono">{{ r.confidence }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <div class="text-center mt-3">
+      <a href="/predict/{{ disease_key }}" class="btn btn-primary btn-sm">← Try another file</a>
+      <a href="/" class="btn btn-ghost btn-sm">Console</a>
+    </div>
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

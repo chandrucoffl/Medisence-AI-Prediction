@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Console — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/patients" class="nav-link">Patients</a>
+    <a href="{{ url_for('logout') }}" class="nav-link">Log out</a>
+  </nav>
+
+  <div class="hud-ticker">
+    <div class="ticker-track">
+      <span class="ticker-item">◈ SYSTEM STATUS: ALL 6 DIAGNOSTIC CHANNELS OPERATIONAL</span><span class="ticker-dot">•</span><span class="ticker-item">AI INFERENCE ENGINE: READY</span><span class="ticker-dot">•</span><span class="ticker-item">ML · DL · CV · NLP MODULES ONLINE</span><span class="ticker-dot">•</span><span class="ticker-item">MEDISENSE AI CONSOLE v2.0</span><span class="ticker-dot">•</span><span class="ticker-item">PATIENT DATA LINK: SECURE</span><span class="ticker-dot">•</span><span class="ticker-item">REAL-TIME RISK ASSESSMENT: ACTIVE</span><span class="ticker-dot">•</span><span class="ticker-item">MODEL ACCURACY: 94–98%</span><span class="ticker-dot">•</span><span class="ticker-item">◈ SYSTEM STATUS: ALL 6 DIAGNOSTIC CHANNELS OPERATIONAL</span><span class="ticker-dot">•</span><span class="ticker-item">AI INFERENCE ENGINE: READY</span><span class="ticker-dot">•</span><span class="ticker-item">ML · DL · CV · NLP MODULES ONLINE</span><span class="ticker-dot">•</span><span class="ticker-item">MEDISENSE AI CONSOLE v2.0</span><span class="ticker-dot">•</span><span class="ticker-item">PATIENT DATA LINK: SECURE</span><span class="ticker-dot">•</span><span class="ticker-item">REAL-TIME RISK ASSESSMENT: ACTIVE</span><span class="ticker-dot">•</span><span class="ticker-item">MODEL ACCURACY: 94–98%</span><span class="ticker-dot">•</span>
+    </div>
+  </div>
+
+  <div class="console-wrap">
+    <div class="console-header anim-in">
+      <span class="eyebrow">Diagnostic Console</span>
+      <h1 class="mt-1 grad-text" data-text="Multi-modal risk assessment">Multi-modal risk assessment</h1>
+      <p>Select a module below to run an AI prediction against patient data.</p>
+      <div class="readout-strip">
+        <div class="readout"><div class="val">06</div><div class="lbl">Modules Online</div></div>
+        <div class="readout"><div class="val">4</div><div class="lbl">ML Predictors</div></div>
+        <div class="readout"><div class="val">1</div><div class="lbl">DL Imaging</div></div>
+        <div class="readout"><div class="val">1</div><div class="lbl">NLP Chatbot</div></div>
+      </div>
+      <svg class="waveform" viewBox="0 0 600 60" preserveAspectRatio="none"><path d="M0,30 L25,30 L32,8 L38,52 L44,22 L50,30 L125,30 L132,8 L138,52 L144,22 L150,30 L225,30 L232,8 L238,52 L244,22 L250,30 L325,30 L332,8 L338,52 L344,22 L350,30 L425,30 L432,8 L438,52 L444,22 L450,30 L525,30 L532,8 L538,52 L544,22 L550,30 L600,30" fill="none" stroke="var(--signal)" stroke-width="2"/></svg>
+    </div>
+
+    {% if active_patient %}
+    <div class="card mb-2 anim-in" style="border-left:3px solid var(--signal); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem;">
+      <div>
+        <span class="eyebrow">Active Patient</span>
+        <div style="font-weight:700; font-size:1.02rem;">{{ active_patient.name }} <span class="text-muted small mono">· {{ active_patient.age or '—' }}y · {{ active_patient.gender or '—' }}</span></div>
+        <div class="text-muted small">Predictions below will be attached to this patient's report.</div>
+      </div>
+      <div class="flex gap-sm">
+        <a href="/patients/{{ active_patient.id }}/report" class="btn btn-sm btn-primary">View report</a>
+        <a href="/patients/clear" class="btn btn-sm btn-ghost">Clear</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="note note-warn mb-2 anim-in flex" style="justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.6rem;">
+      <span>No active patient — predictions won't be saved to a report.</span>
+      <a href="/patients" class="btn btn-sm btn-primary">Select / add patient</a>
+    </div>
+    {% endif %}
+
+    <span class="eyebrow">Diagnostic Modules</span>
+    <div class="module-grid mt-1">
+      {% set accents = {"breast_cancer": ("var(--pink)","var(--pink-dim)"), "diabetes": ("var(--orange)","var(--orange-dim)"), "heart_disease": ("var(--rose)","var(--rose-dim)"), "kidney_disease": ("var(--teal)","var(--teal-dim)")} %}
+      {% set idx = namespace(n=1) %}
+      {% for key, m in diseases.items() %}
+      {% set acc = accents.get(key, ("var(--signal)","var(--signal-dim)")) %}
+      <a href="/predict/{{ key }}" class="module-card anim-in" style="--accent:{{ acc[0] }}; --accent-dim:{{ acc[1] }};">
+        <span class="ch-tag">CH.0{{ idx.n }} // ML</span>
+        <div class="m-icon">{{ m.icon }}</div>
+        <div class="m-name">{{ m.name }}</div>
+        <div class="m-desc">{{ m.description }}</div>
+        <div class="m-stats">
+          <span class="stat-chip">ACC {{ m.accuracy }}%</span>
+          <span class="stat-chip">AUC {{ m.auc }}%</span>
+        </div>
+      </a>
+      {% set idx.n = idx.n + 1 %}
+      {% endfor %}
+
+      <a href="/predict/xray" class="module-card anim-in" style="--accent:var(--amber); --accent-dim:var(--amber-dim);">
+        <span class="ch-tag">CH.05 // DEEP LEARNING</span>
+        <div class="m-icon">{{ xray.icon }}</div>
+        <div class="m-name">{{ xray.name }}</div>
+        <div class="m-desc">{{ xray.description }}</div>
+        <div class="m-stats">
+          <span class="stat-chip">ACC {{ xray.accuracy }}%</span>
+          <span class="stat-chip">AUC {{ xray.auc }}%</span>
+        </div>
+      </a>
+
+      <a href="/symptom-checker" class="module-card anim-in" style="--accent:var(--cyan); --accent-dim:var(--cyan-dim);">
+        <span class="ch-tag">CH.06 // NLP CHATBOT</span>
+        <div class="m-icon">{{ nlp.icon }}</div>
+        <div class="m-name">{{ nlp.name }}</div>
+        <div class="m-desc">{{ nlp.description }}</div>
+        <div class="m-stats">
+          <span class="stat-chip">TOP-1 {{ nlp.accuracy }}%</span>
+          <span class="stat-chip">TOP-3 {{ nlp.auc }}%</span>
+        </div>
+      </a>
+    </div>
+
+    <div class="note note-muted mt-3 small">
+      Tip — open a module, then use the sample-data buttons to instantly try a Low-Risk or High-Risk example.
+    </div>
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

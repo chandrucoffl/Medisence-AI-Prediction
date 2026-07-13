@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>X-ray Result — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .img-box { background: var(--ink); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem; text-align: center; }
+    .img-box img { width: 100%; border-radius: 6px; }
+    .img-label { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap narrow">
+    <div class="verdict-panel {{ 'high' if badge == 'danger' else ('warn' if badge == 'warning' else 'low') }}">
+      <div class="verdict-icon">{% if label == "Normal" %}✓{% elif label == "Inconclusive" %}❓{% else %}⚠{% endif %}</div>
+      {% if label == "Inconclusive" %}
+      <div class="verdict-title">Inconclusive</div>
+      {% else %}
+      <div class="verdict-title">{{ result }} — {{ label }}</div>
+      {% endif %}
+      <div class="verdict-sub">🫁 Chest X-ray Pneumonia Detector · Deep Learning</div>
+      {% if label != "Inconclusive" %}
+      <div class="confidence-readout">CONFIDENCE {{ confidence }}</div>
+      {% endif %}
+      {% if saved_note %}
+      <div class="note note-info mt-2 small">Saved to <strong>{{ saved_note }}</strong>'s health report</div>
+      {% endif %}
+      {% if out_of_distribution %}
+      <div class="note note-warn mt-2 small">
+        ⚠️ <strong>Unable to reliably assess this image.</strong> Its pattern looks very different from what this
+        model was trained on (procedurally-generated synthetic X-rays — see note on the upload page). Rather than
+        show a possibly-wrong Normal/Pneumonia verdict, MediSense is flagging this as inconclusive. Please rely on
+        radiologist review for this image, or retrain the model on a real dataset for genuine diagnostic accuracy.
+      </div>
+      {% endif %}
+
+      {% if show_heatmap %}
+      <hr style="border-color:var(--border); margin:1.6rem 0;">
+      <p class="eyebrow" style="color:var(--amber);">CV Module — Occlusion Sensitivity Map</p>
+      <p class="text-muted small">Heatmap of the regions that most influenced the "Pneumonia" decision — warmer colors mean higher AI attention.</p>
+      <div class="module-grid mt-2" style="grid-template-columns:1fr 1fr;">
+        <div class="img-box">
+          <img src="{{ original_data_url }}" alt="Original X-ray"/>
+          <div class="img-label">ORIGINAL</div>
+        </div>
+        <div class="img-box">
+          <img src="{{ heatmap_data_url }}" alt="Attention heatmap"/>
+          <div class="img-label">AI ATTENTION</div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="flex gap-sm mt-3" style="justify-content:center;">
+        <a href="/predict/xray" class="btn btn-primary btn-sm">← Predict again</a>
+        <a href="/" class="btn btn-ghost btn-sm">Change module</a>
+      </div>
+      <p class="text-muted small mt-2" style="margin-bottom:0;">
+        AI-assisted screening only — not a clinical diagnosis. Confirm with a radiologist.
+      </p>
+    </div>
+
+    {% if all_diseases %}
+    <p class="eyebrow mt-3 mb-1">Try another module</p>
+    <div class="module-grid" style="grid-template-columns:repeat(auto-fill, minmax(220px,1fr));">
+      {% for key, m in all_diseases.items() %}
+      <a href="/predict/{{ key }}" class="module-card" style="--accent:var(--signal); --accent-dim:var(--signal-dim); padding:0.9rem 1.1rem;">
+        <span style="font-size:1.2rem;">{{ m.icon }}</span>
+        <strong class="small" style="margin-left:0.5rem;">{{ m.name }}</strong>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Patients — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .patient-row { border-radius: 8px; padding: 0.8rem 1rem; background: var(--ink); border: 1px solid var(--border);
+      margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+    .patient-row.active { border-left: 3px solid var(--signal); }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap narrow">
+    <span class="eyebrow">Patient Records</span>
+    <h1 class="mono mt-1 mb-3" style="font-size:1.3rem;">👥 Registry</h1>
+
+    <div class="card mb-3 anim-in">
+      <p class="eyebrow mb-2">Register new patient</p>
+      <form method="POST" class="flex gap-sm wrap" style="align-items:end;">
+        <div class="field-box" style="flex:2; min-width:160px;">
+          <label>Full name</label>
+          <input type="text" name="name" placeholder="Patient name" required/>
+        </div>
+        <div class="field-box" style="width:90px;">
+          <label>Age</label>
+          <input type="number" name="age" min="0" max="120"/>
+        </div>
+        <div class="field-box" style="width:130px;">
+          <label>Gender</label>
+          <select name="gender" class="input" style="border:none; background:transparent; padding:0; font-size:0.88rem;">
+            <option value="">—</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Add &amp; select</button>
+      </form>
+    </div>
+
+    <div class="card anim-in">
+      <p class="eyebrow mb-2">All patients</p>
+      {% if not patients %}
+        <p class="text-muted small">No patients yet — register one above to start building AI health reports.</p>
+      {% endif %}
+      {% for p in patients %}
+      <div class="patient-row {{ 'active' if p.id == active_patient_id else '' }}">
+        <div>
+          <strong>{{ p.name }}</strong>
+          <span class="text-muted small mono">{{ p.age or '—' }}y · {{ p.gender or '—' }}</span>
+          <div class="text-muted" style="font-size:0.7rem;">Added {{ p.created_at }} by {{ p.doctor }}</div>
+        </div>
+        <div class="flex gap-sm">
+          {% if p.id == active_patient_id %}
+            <span class="badge badge-low">Active</span>
+          {% else %}
+            <a href="/patients/select/{{ p.id }}" class="btn btn-sm btn-ghost">Select</a>
+          {% endif %}
+          <a href="/patients/{{ p.id }}/report" class="btn btn-sm btn-primary">Report</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

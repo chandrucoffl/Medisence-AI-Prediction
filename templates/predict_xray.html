@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Chest X-ray Detector — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .drop-zone { border: 1.5px dashed var(--border-hi); border-radius: 12px; padding: 2rem; text-align: center;
+      background: var(--ink); cursor: pointer; transition: 0.2s; }
+    .drop-zone:hover { border-color: var(--amber); }
+    #preview { max-width: 220px; max-height: 220px; border-radius: 8px; display: none; margin: 0.75rem auto; border: 1px solid var(--border); }
+    .switcher { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .switcher a { text-decoration: none; font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+      padding: 0.4rem 0.75rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted);
+      background: var(--panel); transition: 0.15s; }
+    .switcher a:hover { border-color: var(--amber); color: var(--amber); }
+    .switcher a.current { border-color: var(--amber); color: var(--amber); background: var(--amber-dim); }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap narrow">
+    <div class="switcher">
+      {% for m in nav_modules %}
+      <a href="{{ m.url }}" class="{{ 'current' if m.current else '' }}">{{ m.icon }} {{ m.name }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="console-header anim-in" style="--accent:var(--amber);">
+      <span class="eyebrow" style="color:var(--amber);">Deep Learning</span>
+      <h1 class="mt-1 grad-text" data-text="🫁 Chest X-ray Pneumonia Detector">🫁 Chest X-ray Pneumonia Detector</h1>
+      <p>CNN-style convolutional feature extraction + deep neural network classifier.</p>
+      <div class="readout-strip">
+        <div class="readout"><div class="val" style="color:var(--amber);">{{ accuracy }}%</div><div class="lbl">Accuracy</div></div>
+        <div class="readout"><div class="val" style="color:var(--amber);">{{ auc }}%</div><div class="lbl">AUC</div></div>
+      </div>
+    </div>
+
+    <div class="note note-muted small mb-2">
+      {% if is_synthetic %}
+      Base model trained on procedurally-generated X-ray-pattern images (no real dataset could be downloaded offline).
+      <strong>Real chest X-ray photos are now supported</strong> — uploads are auto-cropped to square and contrast-normalized,
+      and the app will flag results as low-confidence if the image looks very different from the training patterns.
+      For full real-world diagnostic accuracy, retrain on the free Kaggle "Chest X-Ray Images (Pneumonia)" dataset —
+      see <code>model/train_dl_model.py --real-data</code> in the project files.
+      {% else %}
+      This model was retrained on a real chest X-ray dataset.
+      {% endif %}
+    </div>
+
+    <div class="flex gap-sm wrap mb-2" style="justify-content:center;">
+      <button class="btn btn-sm btn-primary" onclick="loadSample('normal')">Generate normal sample</button>
+      <button class="btn btn-sm btn-danger" onclick="loadSample('pneumonia')">Generate pneumonia sample</button>
+    </div>
+
+    <form action="/predict/xray" method="POST" id="xrayForm">
+      <input type="hidden" name="image_data" id="image_data"/>
+      <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+        <div style="font-size:1.8rem;">↑</div>
+        <p class="mb-0" style="font-weight:600;">Click to upload a chest X-ray</p>
+        <p class="text-muted small">Any photo works — JPEG/PNG, any size or aspect ratio, or use a generated sample above</p>
+        <img id="preview" />
+      </div>
+      <input type="file" id="fileInput" accept="image/*" style="display:none" onchange="handleFile(this.files[0])"/>
+      <div class="text-center mt-3">
+        <button type="submit" class="btn btn-sm" id="predictBtn" disabled
+          style="padding:0.8rem 2.4rem; font-size:0.86rem; background:var(--amber); border-color:var(--amber); color:#2A1800;">
+          Run prediction →
+        </button>
+      </div>
+    </form>
+
+    <div class="card mt-3" style="border-style:dashed; border-color:var(--border-hi);">
+      <form action="/predict/xray/batch" method="POST" enctype="multipart/form-data" class="flex gap-sm wrap" style="align-items:center;">
+        <span class="small" style="font-weight:600;">📤 Batch predict from multiple X-ray images:</span>
+        <input type="file" name="xray_images" accept="image/*" multiple required class="input" style="max-width:260px; padding:0.4rem 0.6rem;"/>
+        <button type="submit" class="btn btn-sm" style="background:var(--amber); border-color:var(--amber); color:#2A1800;">Run batch</button>
+      </form>
+      <p class="text-muted small mt-1" style="margin-bottom:0;">
+        Select multiple X-ray image files at once (Ctrl/Cmd-click, or drag-select in the file picker) — each gets its own prediction.
+      </p>
+    </div>
+  </div>
+
+<script>
+function showPreview(dataUrl) {
+  const img = document.getElementById('preview');
+  img.src = dataUrl; img.style.display = 'block';
+  document.getElementById('image_data').value = dataUrl;
+  document.getElementById('predictBtn').disabled = false;
+}
+async function loadSample(label) {
+  const res = await fetch(`/sample_xray/${label}`);
+  const data = await res.json();
+  showPreview(data.image);
+}
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => showPreview(e.target.result);
+  reader.readAsDataURL(file);
+}
+</script>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

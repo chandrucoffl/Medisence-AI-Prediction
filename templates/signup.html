@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Register — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .auth-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem; position: relative; z-index: 1; }
+    .auth-card { width: 520px; background: var(--panel); border: 1px solid var(--border); clip-path: polygon(0 20px, 20px 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%); overflow: hidden; backdrop-filter: blur(20px) saturate(160%); box-shadow: 0 24px 70px rgba(0,0,0,0.4); }
+    .auth-head { padding: 1.8rem 2rem 1.3rem; text-align: center; border-bottom: 1px solid var(--border); }
+    .auth-body { padding: 1.6rem 2rem 2rem; }
+    .brand-mark { font-family: var(--display); font-weight: 800; font-size: 1.15rem; letter-spacing: -0.01em; }
+    .brand-mark .dot { display:inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 8px var(--signal); margin-right: 6px; }
+    .section-label { font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.1em;
+      color: var(--signal); border-bottom: 1px solid var(--border); padding-bottom: 0.3rem; margin: 1.1rem 0 0.7rem; }
+    .strength-bar { height: 4px; border-radius: 10px; background: var(--border); overflow: hidden; }
+    .strength-fill { height: 4px; transition: 0.3s; width: 0%; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  </style>
+</head>
+<body>
+<div class="auth-shell">
+  <div class="auth-card">
+    <div class="auth-head">
+      <div class="brand-mark"><span class="dot"></span>MEDISENSE // AI</div>
+      <p class="text-muted small mt-1" style="margin:0.3rem 0 0;">Doctor Registration</p>
+    </div>
+    <div class="auth-body">
+      {% if error %}
+      <div class="note note-danger small mb-2">{{ error }}</div>
+      {% endif %}
+      <form action="/signup" method="POST" onsubmit="return validateForm()">
+        <div class="section-label">Personal</div>
+        <div class="row2 mb-2">
+          <div class="field-box">
+            <label>Full name</label>
+            <input type="text" name="full_name" placeholder="Dr. John Smith" value="{{ form_data.full_name if form_data else '' }}" required/>
+          </div>
+          <div class="field-box">
+            <label>Date of birth</label>
+            <input type="date" name="dob" value="{{ form_data.dob if form_data else '' }}" max="{{ today }}" required/>
+          </div>
+        </div>
+        <div class="row2 mb-2">
+          <div class="field-box">
+            <label>Age</label>
+            <input type="number" name="age" placeholder="35" min="22" max="80" value="{{ form_data.age if form_data else '' }}" required/>
+          </div>
+          <div class="field-box">
+            <label>Mobile</label>
+            <input type="tel" name="mobile" placeholder="9876543210" maxlength="10" pattern="[0-9]{10}" value="{{ form_data.mobile if form_data else '' }}" required/>
+          </div>
+        </div>
+
+        <div class="section-label">Professional</div>
+        <div class="row2 mb-2">
+          <div class="field-box">
+            <label>Specialization</label>
+            <select name="specialization" class="input" style="border:none; background:transparent; padding:0; font-size:0.88rem;" required>
+              <option value="" disabled {{ 'selected' if not form_data else '' }}>Select…</option>
+              <option value="General Physician">General Physician</option>
+              <option value="Cardiologist">Cardiologist</option>
+              <option value="Endocrinologist">Endocrinologist</option>
+              <option value="Nephrologist">Nephrologist</option>
+              <option value="Oncologist">Oncologist</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field-box">
+            <label>Hospital / clinic</label>
+            <input type="text" name="hospital" placeholder="City Hospital" value="{{ form_data.hospital if form_data else '' }}" required/>
+          </div>
+        </div>
+
+        <div class="section-label">Credentials</div>
+        <div class="field-box mb-2">
+          <label>Username</label>
+          <input type="text" name="username" placeholder="dr.johnsmith" pattern="[a-zA-Z0-9._]{4,20}" value="{{ form_data.username if form_data else '' }}" required/>
+        </div>
+        <div class="field-box mb-1">
+          <label>Password</label>
+          <input type="password" name="password" id="pwd" placeholder="Min 8 characters" oninput="checkStrength(this.value)" minlength="8" required/>
+        </div>
+        <div class="strength-bar mb-1"><div class="strength-fill" id="strength-fill"></div></div>
+        <p id="strength-text" class="small mono" style="margin:0 0 0.8rem;"></p>
+        <div class="field-box mb-2">
+          <label>Confirm password</label>
+          <input type="password" name="confirm_password" id="cpwd" placeholder="Re-enter password" minlength="8" required/>
+        </div>
+        <p id="match-text" class="small mono" style="margin:0 0 0.9rem;"></p>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Create account →</button>
+      </form>
+      <p class="text-center small text-muted mt-2" style="margin-bottom:0;">
+        Already registered? <a href="/login" style="color:var(--signal); text-decoration:none;">Sign in</a>
+      </p>
+    </div>
+  </div>
+</div>
+<script>
+function checkStrength(val) {
+  const fill = document.getElementById('strength-fill');
+  const text = document.getElementById('strength-text');
+  let score = 0;
+  if (val.length >= 8) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { w:'0%', c:'#7E8CA6', t:'' }, { w:'25%', c:'#FF5C6C', t:'Weak' },
+    { w:'50%', c:'#FFB454', t:'Fair' }, { w:'75%', c:'#FFB454', t:'Good' },
+    { w:'100%', c:'#2FE6A6', t:'Strong' },
+  ];
+  fill.style.width = levels[score].w; fill.style.background = levels[score].c;
+  text.textContent = levels[score].t; text.style.color = levels[score].c;
+}
+function validateForm() {
+  const pwd = document.getElementById('pwd').value;
+  const cpwd = document.getElementById('cpwd').value;
+  const mt = document.getElementById('match-text');
+  if (pwd !== cpwd) { mt.textContent = 'Passwords do not match'; mt.style.color = '#FF5C6C'; return false; }
+  return true;
+}
+document.getElementById('cpwd').addEventListener('input', function() {
+  const pwd = document.getElementById('pwd').value;
+  const mt = document.getElementById('match-text');
+  if (this.value === '') { mt.textContent = ''; return; }
+  if (this.value === pwd) { mt.textContent = 'Passwords match'; mt.style.color = '#2FE6A6'; }
+  else { mt.textContent = 'Does not match'; mt.style.color = '#FF5C6C'; }
+});
+</script>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

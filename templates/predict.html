@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>{{ disease_name }} — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .switcher { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .switcher a { text-decoration: none; font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+      padding: 0.4rem 0.75rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted);
+      background: var(--panel); transition: 0.15s; }
+    .switcher a:hover { border-color: var(--signal); color: var(--signal); }
+    .switcher a.current { border-color: var(--signal); color: var(--signal); background: var(--signal-dim); }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/patients" class="nav-link">Patients</a>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap">
+    <div class="switcher">
+      {% for m in nav_modules %}
+      <a href="{{ m.url }}" class="{{ 'current' if m.current else '' }}">{{ m.icon }} {{ m.name }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="console-header anim-in" style="--accent:var(--signal);">
+      <span class="eyebrow">ML Predictor</span>
+      <h1 class="mt-1 grad-text" data-text="{{ disease_icon }} {{ disease_name }}">{{ disease_icon }} {{ disease_name }}</h1>
+      <p>{{ disease_description }}</p>
+      <div class="readout-strip">
+        <div class="readout"><div class="val">{{ disease_accuracy }}%</div><div class="lbl">Accuracy</div></div>
+        <div class="readout"><div class="val">{{ disease_auc }}%</div><div class="lbl">AUC</div></div>
+      </div>
+    </div>
+
+    <div class="flex gap-sm wrap mb-2">
+      <button class="btn btn-sm btn-primary" onclick="loadSample('low_risk')">Load low-risk sample</button>
+      <button class="btn btn-sm btn-danger" onclick="loadSample('high_risk')">Load high-risk sample</button>
+      <button class="btn btn-sm btn-ghost" onclick="clearForm()">Clear all</button>
+    </div>
+
+    <div class="card mb-3" style="border-style:dashed; border-color:var(--border-hi);">
+      <form action="/predict/{{ disease_key }}/csv" method="POST" enctype="multipart/form-data" class="flex gap-sm wrap" style="align-items:center;">
+        <span class="small" style="font-weight:600;">📤 Batch predict from patient CSV:</span>
+        <input type="file" name="csv_file" accept=".csv" required class="input" style="max-width:240px; padding:0.4rem 0.6rem;"/>
+        <button type="submit" class="btn btn-sm btn-primary">Run batch</button>
+      </form>
+      <p class="text-muted small mt-1" style="margin-bottom:0;">
+        Columns auto-match by name (case/spacing-insensitive). Missing columns default to 0. Optional "Name"/"Patient ID" column labels each row.
+      </p>
+    </div>
+
+    <form action="/predict/{{ disease_key }}" method="POST">
+      <div class="module-grid" style="grid-template-columns:repeat(auto-fill, minmax(220px, 1fr));">
+        {% for f in features %}
+        <div class="feature-field">
+          <label>{{ f.label }}</label>
+          <input type="number" step="any" name="{{ f.name }}" id="feat_{{ loop.index }}" data-key="{{ f.name }}" required/>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="text-center mt-3">
+        <button type="submit" class="btn btn-primary" style="padding:0.8rem 2.4rem; font-size:0.86rem;">Run prediction →</button>
+      </div>
+    </form>
+  </div>
+
+<script>
+async function loadSample(type) {
+  const data = await (await fetch(`/sample/{{ disease_key }}/${type}`)).json();
+  document.querySelectorAll('input[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (key in data) el.value = parseFloat(data[key]).toFixed(3);
+  });
+}
+function clearForm() {
+  document.querySelectorAll('input[type="number"]').forEach(e => e.value = '');
+}
+</script>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>

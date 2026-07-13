@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AI Symptom Checker — MediSense AI</title>
+  <link rel="stylesheet" href="/static/css/style.css"/>
+  <style>
+    .switcher { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+    .switcher a { text-decoration: none; font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+      padding: 0.4rem 0.75rem; border-radius: 20px; border: 1px solid var(--border); color: var(--muted);
+      background: var(--panel); transition: 0.15s; }
+    .switcher a:hover { border-color: var(--violet); color: var(--violet); }
+    .switcher a.current { border-color: var(--violet); color: var(--violet); background: var(--violet-dim); }
+  </style>
+</head>
+<body>
+  <nav class="console-nav">
+    <a href="/" class="brand"><span class="dot"></span> MEDISENSE // AI</a>
+    <div class="spacer"></div>
+    <a href="/" class="nav-link">Console</a>
+  </nav>
+
+  <div class="console-wrap narrow">
+    <div class="switcher">
+      {% for m in nav_modules %}
+      <a href="{{ m.url }}" class="{{ 'current' if m.current else '' }}">{{ m.icon }} {{ m.name }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="console-header anim-in" style="--accent:var(--violet); padding:1.4rem 1.6rem;">
+      <span class="eyebrow" style="color:var(--violet);">NLP Chatbot</span>
+      <h1 class="mt-1 grad-text" style="font-size:1.2rem;" data-text="🗣️ AI Symptom Checker">🗣️ AI Symptom Checker</h1>
+      <p class="small">Top-1 accuracy {{ accuracy }}% · Top-3 accuracy {{ top3_accuracy }}%</p>
+    </div>
+
+    <div class="chat-shell">
+      <div class="chat-window" id="chatWindow">
+        <div class="bubble-row"><div class="bubble bot">Hi — tell me what symptoms you're feeling, in your own words, and I'll suggest what it might be.</div></div>
+      </div>
+      <div style="padding:0.7rem 0.9rem 0; background:var(--panel);">
+        <span class="chip" onclick="quickSend('I have a high fever, chills and body ache')">Fever + chills</span>
+        <span class="chip" onclick="quickSend('I have chest pain and shortness of breath')">Chest pain</span>
+        <span class="chip" onclick="quickSend('I have stomach pain, nausea and vomiting')">Stomach issues</span>
+        <span class="chip" onclick="resetChat()">Start over</span>
+      </div>
+      <div style="padding:0.9rem; background:var(--panel); display:flex; gap:0.5rem; border-top:1px solid var(--border);">
+        <input type="text" id="msgInput" class="input" placeholder="Describe your symptoms…" onkeydown="if(event.key==='Enter')sendMsg()"/>
+        <button class="btn btn-primary btn-sm" onclick="sendMsg()">Send →</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const chatWindow = document.getElementById('chatWindow');
+function addBubble(text, who, urgent=false) {
+  const row = document.createElement('div');
+  row.className = 'bubble-row' + (who === 'user' ? ' user' : '');
+  const b = document.createElement('div');
+  b.className = 'bubble ' + who + (urgent ? ' urgent' : '');
+  b.textContent = text;
+  row.appendChild(b);
+  chatWindow.appendChild(row);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+async function sendMsg() {
+  const input = document.getElementById('msgInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  addBubble(msg, 'user');
+  input.value = '';
+  const typing = document.createElement('div');
+  typing.className = 'text-muted small'; typing.id = 'typingIndicator';
+  typing.style.padding = '0 0.5rem 0.4rem';
+  typing.textContent = 'analyzing…';
+  chatWindow.appendChild(typing);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+
+  const res = await fetch('/symptom-checker/ask', {
+    method: 'POST', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({message: msg})
+  });
+  const data = await res.json();
+  document.getElementById('typingIndicator')?.remove();
+  let replyText = data.reply;
+  if (data.saved_note) replyText += `\n\nSaved to ${data.saved_note}'s health report`;
+  addBubble(replyText, 'bot', data.urgent);
+}
+function quickSend(text) { document.getElementById('msgInput').value = text; sendMsg(); }
+async function resetChat() {
+  await fetch('/symptom-checker/reset', {method:'POST'});
+  chatWindow.innerHTML = '';
+  addBubble("Let's start fresh. Tell me your symptoms.", 'bot');
+}
+</script>
+<script src="/static/js/effects.js"></script>
+</body>
+</html>
