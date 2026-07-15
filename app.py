@@ -606,5 +606,7 @@ def patient_report(patient_id):
         module_labels=module_labels, overall=overall, high_risk_items=high_risk_items,
         total_assessments=len(assessments))
 
-if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+import os
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
